@@ -1,0 +1,195 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: black;
+
+/*    background-image: url('stap.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+*/
+}
+
+.container {
+
+	display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh; 
+        text-align: center;
+        position: relative;
+}
+
+/* Media query for larger screens (laptops, desktops) */
+@media screen and (min-width: 768px) {
+        .text {
+                font-size: 10vw; /* Set font size relative to viewport width */
+        }
+}
+
+.text {
+    font-family: monospace;
+    font-size: large;
+
+
+	color: white;
+        line-height: 1.5;
+/*        opacity: 0; */
+        animation-duration: 5s;
+        animation-timing-function: ease-in-out;
+        animation-fill-mode: forwards;
+        animation-iteration-count: 1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+}
+
+.text:nth-child(1) { animation-name: fadein1; }
+.text:nth-child(2) { animation-name: fadein2; }
+.text:nth-child(3) { animation-name: fadein3; }
+.text:nth-child(4) { animation-name: fadein4; }
+.text:nth-child(5) { animation-name: fadein5; }
+.text:nth-child(6) { animation-name: fadein6; }
+.text:nth-child(7) { animation-name: fadein7; }
+.text:nth-child(8) { animation-name: fadein8; }
+.text:nth-child(9) { animation-name: fadein9; }
+.text:nth-child(10) {animation-name: fadein10; }
+
+
+@keyframes fadein1 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0; }
+}
+@keyframes fadein2 {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    20% { opacity: 0;}
+    30% { opacity: 0;}
+    40% { opacity: 0;}
+    50% { opacity: 0;}
+    60% { opacity: 0;}
+    70% { opacity: 0;}
+    80% { opacity: 0;}
+    90% { opacity: 0;}
+    100% { opacity: 0;}
+}
+@keyframes fadein3 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 1; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0;}
+}
+@keyframes fadein4 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 1; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0;}
+}
+@keyframes fadein5 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 1; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0;}
+}
+@keyframes fadein6 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 1; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0;}
+}
+@keyframes fadein7 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 1; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 0;}
+}
+@keyframes fadein8 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 1; }
+    80% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 1;}
+}
+@keyframes fadein9 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 0; }
+}
+@keyframes fadein10 {
+    0% { opacity: 0; }
+    10% { opacity: 0; }
+    20% { opacity: 0; }
+    30% { opacity: 0; }
+    40% { opacity: 0; }
+    50% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 0; }
+    80% { opacity: 0; }
+    90% { opacity: 0; }
+    100% { opacity: 1; }
+}
+

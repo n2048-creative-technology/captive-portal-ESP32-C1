@@ -4,12 +4,14 @@
 #include <DNSServer.h>
 #include <U8g2lib.h>
 #include <Wire.h>
+#include <qrcode.h>
+#include <LittleFS.h>
 
 // =====================================================
 // WiFi hotspot settings
 // =====================================================
 const char* AP_SSID = "S.T.A.P.";
-const char* AP_PASSWORD = NULL; //  "12345678";  // minimum 8 characters
+const char* AP_PASSWORD = NULL;   // Open network
 
 IPAddress apIP(192, 168, 4, 1);
 
@@ -18,7 +20,7 @@ DNSServer dnsServer;
 const byte DNS_PORT = 53;
 
 // =====================================================
-// OLED: confirmed from your working project
+// OLED
 // SSD1306 128x64, HW I2C, SCL=6, SDA=5
 // =====================================================
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(
@@ -34,300 +36,11 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(
 int currentClients = 0;
 unsigned long lastClientPollMs = 0;
 unsigned long lastDisplayRefreshMs = 0;
+unsigned long lastScreenToggleMs = 0;
+bool showQrScreen = false;
 
 // =====================================================
-// HTML page
-// =====================================================
-String makeHtmlPage() {
-  String ipStr = apIP.toString();
-
-  String html = R"rawliteral(
-
-<!DOCTYPE html>
-<html>
-  <head>
-    	<title>smaller than a pixel</title>
-
-	<meta charset="UTF-8">
-  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	
-  <style>
-   body {
-	margin: 0;
-	padding: 0;
-	background-color: black;
-
-/*    background-image: url('stap.png'); 
-    background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed;
-*/
-}
-
-
-video {
-    display:none;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    margin: auto;
-}
-
-#video-container {
-  z-index: 1;
-}
-
-#video-container:fullscreen video {
-    display:none;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    margin: auto;  
-}
-
-#video-container:fullscreen instruction {
-  position: fixed;
-  height: 100vh;
-  width: auto;
-  position: fixed;
-  top: calc(50vh - (80vh / 2));
-  right: 10px;
-}
-
-
-#instruction,
-#instruction:fullscreen
- {
-        color: white;
-	background:none;
-        font-size: 10vw;
-        line-height: 1.5;
-        position: absolute; 
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-	justify-content: center;
-	z-index: 2147483647;
-        text-align: center;
-}
-
-.container {
-
-	display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh; 
-        text-align: center;
-        position: relative;
-}
-
-/* Media query for larger screens (laptops, desktops) */
-@media screen and (min-width: 768px) {
-        .text {
-                font-size: 10vw; /* Set font size relative to viewport width */
-        }
-}
-
-.text {
-    font-family: monospace;
-    font-size: large;
-
-
-	color: white;
-        line-height: 1.5;
-/*        opacity: 0; */
-        animation-duration: 5s;
-        animation-timing-function: ease-in-out;
-        animation-fill-mode: forwards;
-        animation-iteration-count: 1;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-}
-
-.text:nth-child(1) { animation-name: fadein1; }
-.text:nth-child(2) { animation-name: fadein2; }
-.text:nth-child(3) { animation-name: fadein3; }
-.text:nth-child(4) { animation-name: fadein4; }
-.text:nth-child(5) { animation-name: fadein5; }
-.text:nth-child(6) { animation-name: fadein6; }
-.text:nth-child(7) { animation-name: fadein7; }
-.text:nth-child(8) { animation-name: fadein8; }
-.text:nth-child(9) { animation-name: fadein9; }
-.text:nth-child(10) {animation-name: fadein10; }
-
-
-@keyframes fadein1 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0; }
-}
-@keyframes fadein2 {
-    0% { opacity: 0; }
-    10% { opacity: 1; }
-    20% { opacity: 0;}
-    30% { opacity: 0;}
-    40% { opacity: 0;}
-    50% { opacity: 0;}
-    60% { opacity: 0;}
-    70% { opacity: 0;}
-    80% { opacity: 0;}
-    90% { opacity: 0;}
-    100% { opacity: 0;}
-}
-@keyframes fadein3 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 1; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0;}
-}
-@keyframes fadein4 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 1; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0;}
-}
-@keyframes fadein5 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 1; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0;}
-}
-@keyframes fadein6 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 1; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0;}
-}
-@keyframes fadein7 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 1; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 0;}
-}
-@keyframes fadein8 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 1; }
-    80% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { opacity: 1;}
-}
-@keyframes fadein9 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 1; }
-    90% { opacity: 0; }
-    100% { opacity: 0; }
-}
-@keyframes fadein10 {
-    0% { opacity: 0; }
-    10% { opacity: 0; }
-    20% { opacity: 0; }
-    30% { opacity: 0; }
-    40% { opacity: 0; }
-    50% { opacity: 0; }
-    60% { opacity: 0; }
-    70% { opacity: 0; }
-    80% { opacity: 0; }
-    90% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-
-</style>
-
-
-  </head>
-  <body>
-
-    <div class="container" id="container">
-        <p class="text"></p>
-        <p class="text">SMALLER</p>
-        <p class="text">THAN</p>
-        <p class="text">A</p>
-        <p class="text">PIXEL</p>
-        <p class="text"></p>
-        <p class="text"></p>
-        <p class="text">SMALLER THAN A PIXEL</p>
-    </div>
-
-    	<script type="text/javascript">
-      </script>
-</html>
-
-)rawliteral";
-
-  return html;
-}
-
-// =====================================================
-// Captive portal helpers
+// Helpers
 // =====================================================
 bool isIp(const String& str) {
   for (size_t i = 0; i < str.length(); i++) {
@@ -342,7 +55,7 @@ bool isIp(const String& str) {
 bool captivePortalRedirect() {
   String host = server.hostHeader();
 
-  if (!isIp(host) && host != String(apIP.toString())) {
+  if (!isIp(host) && host != apIP.toString()) {
     server.sendHeader("Location", String("http://") + apIP.toString(), true);
     server.send(302, "text/plain", "");
     return true;
@@ -350,15 +63,40 @@ bool captivePortalRedirect() {
   return false;
 }
 
+bool serveFile(const char* path, const char* contentType) {
+  File file = LittleFS.open(path, "r");
+  if (!file || file.isDirectory()) {
+    return false;
+  }
+
+  server.streamFile(file, contentType);
+  file.close();
+  return true;
+}
+
 // =====================================================
 // Web handlers
 // =====================================================
 void handleRoot() {
   if (captivePortalRedirect()) return;
-  server.send(200, "text/html", makeHtmlPage());
+
+  if (!serveFile("/index.html", "text/html")) {
+    server.send(500, "text/plain", "Missing /index.html");
+  }
 }
 
-// Common captive portal detection endpoints
+void handleStyle() {
+  if (!serveFile("/style.css", "text/css")) {
+    server.send(404, "text/plain", "Missing /style.css");
+  }
+}
+
+void handleScript() {
+  if (!serveFile("/script.js", "application/javascript")) {
+    server.send(404, "text/plain", "Missing /script.js");
+  }
+}
+
 void handleGenerate204() {
   server.sendHeader("Location", String("http://") + apIP.toString(), true);
   server.send(302, "text/plain", "");
@@ -376,7 +114,10 @@ void handleNcsi() {
 
 void handleNotFound() {
   if (captivePortalRedirect()) return;
-  server.send(200, "text/html", makeHtmlPage());
+
+  if (!serveFile("/index.html", "text/html")) {
+    server.send(404, "text/plain", "Not found");
+  }
 }
 
 // =====================================================
@@ -393,7 +134,7 @@ void initDisplay() {
   u8g2.sendBuffer();
 }
 
-void drawDisplay(int clients) {
+void drawStatusScreen(int clients) {
   char line1[24];
   char line2[24];
 
@@ -401,13 +142,61 @@ void drawDisplay(int clients) {
   snprintf(line2, sizeof(line2), "%s", apIP.toString().c_str());
 
   u8g2.clearBuffer();
-
   u8g2.setFont(u8g2_font_6x13_tf);
   u8g2.drawStr(30, 34, line1);
   u8g2.drawStr(30, 50, AP_SSID);
   u8g2.drawStr(30, 62, line2);
-
   u8g2.sendBuffer();
+}
+
+void drawQrScreen() {
+  const String qrText = String("WIFI:T:nopass;S:") + AP_SSID + ";;";
+
+  const uint8_t version = 3;
+
+  QRCode qrcode;
+  uint8_t qrcodeData[qrcode_getBufferSize(version)];
+  qrcode_initText(&qrcode, qrcodeData, version, ECC_LOW, qrText.c_str());
+
+  // Keep the QR inside the lower half of the screen
+  const int maxScaleX = 128 / qrcode.size;
+  const int maxScaleY = 32 / qrcode.size;
+  int scale = min(maxScaleX, maxScaleY);
+  if (scale < 1) scale = 1;
+
+  const int qrPixels = qrcode.size * scale;
+  const int xOffset = (128 - qrPixels) / 2;
+  const int yOffset = 32;
+
+  u8g2.clearBuffer();
+
+  // White background square
+  u8g2.drawBox(xOffset, yOffset, qrPixels, qrPixels);
+  u8g2.setDrawColor(0);
+
+  for (uint8_t y = 0; y < qrcode.size; y++) {
+    for (uint8_t x = 0; x < qrcode.size; x++) {
+      if (qrcode_getModule(&qrcode, x, y)) {
+        u8g2.drawBox(
+          xOffset + x * scale,
+          yOffset + y * scale,
+          scale,
+          scale
+        );
+      }
+    }
+  }
+
+  u8g2.setDrawColor(1);
+  u8g2.sendBuffer();
+}
+
+void renderCurrentScreen() {
+  if (showQrScreen) {
+    drawQrScreen();
+  } else {
+    drawStatusScreen(currentClients);
+  }
 }
 
 // =====================================================
@@ -419,12 +208,20 @@ void setup() {
 
   initDisplay();
 
+  if (!LittleFS.begin(true)) {
+    Serial.println("LittleFS mount failed");
+
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_6x13_tf);
+    u8g2.drawStr(6, 12, "LittleFS failed");
+    u8g2.sendBuffer();
+    return;
+  }
+
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
   bool apStarted = WiFi.softAP(AP_SSID, AP_PASSWORD);
-
-  
   if (!apStarted) {
     Serial.println("Failed to start hotspot");
 
@@ -438,21 +235,19 @@ void setup() {
   Serial.print("Hotspot started. IP: ");
   Serial.println(WiFi.softAPIP());
 
-  // DNS wildcard: all domains resolve to ESP32 AP IP
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  // Main page
+  // Static files
   server.on("/", handleRoot);
+  server.on("/index.html", handleRoot);
+  server.on("/style.css", handleStyle);
+  server.on("/script.js", handleScript);
 
-  // Android captive portal checks
+  // Captive portal probes
   server.on("/generate_204", handleGenerate204);
   server.on("/gen_204", handleGenerate204);
-
-  // Apple captive portal checks
   server.on("/hotspot-detect.html", handleHotspotDetect);
   server.on("/library/test/success.html", handleHotspotDetect);
-
-  // Windows captive portal checks
   server.on("/ncsi.txt", handleNcsi);
   server.on("/connecttest.txt", handleNcsi);
   server.on("/redirect", handleNcsi);
@@ -461,7 +256,8 @@ void setup() {
   server.begin();
 
   currentClients = WiFi.softAPgetStationNum();
-  drawDisplay(currentClients);
+  lastScreenToggleMs = millis();
+  renderCurrentScreen();
 
   Serial.print("Initial clients: ");
   Serial.println(currentClients);
@@ -474,7 +270,7 @@ void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
 
-  unsigned long now = millis();
+  const unsigned long now = millis();
 
   if (now - lastClientPollMs >= 1000) {
     lastClientPollMs = now;
@@ -486,13 +282,21 @@ void loop() {
       Serial.print("Clients connected: ");
       Serial.println(currentClients);
 
-      drawDisplay(currentClients);
+      if (!showQrScreen) {
+        drawStatusScreen(currentClients);
+      }
     }
   }
 
-  if (now - lastDisplayRefreshMs >= 5000) {
+  if (now - lastScreenToggleMs >= 5000) {
+    lastScreenToggleMs = now;
+    showQrScreen = !showQrScreen;
+    renderCurrentScreen();
+  }
+
+  if (!showQrScreen && now - lastDisplayRefreshMs >= 5000) {
     lastDisplayRefreshMs = now;
-    drawDisplay(currentClients);
+    drawStatusScreen(currentClients);
   }
 
   delay(1);
