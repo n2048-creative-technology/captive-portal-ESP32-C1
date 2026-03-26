@@ -85,6 +85,14 @@ void handleRoot() {
   }
 }
 
+void handleIco() {
+  if (captivePortalRedirect()) return;
+
+  if (!serveFile("/favicon.ico", "image/x-icon")) {
+    server.send(404, "text/plain", "Missing /favicon.ico");
+  }
+}
+
 void handleStyle() {
   if (!serveFile("/style.css", "text/css")) {
     server.send(404, "text/plain", "Missing /style.css");
@@ -240,6 +248,7 @@ void setup() {
   // Static files
   server.on("/", handleRoot);
   server.on("/index.html", handleRoot);
+  server.on("/favicon.ico", handleIco); 
   server.on("/style.css", handleStyle);
   server.on("/script.js", handleScript);
 
